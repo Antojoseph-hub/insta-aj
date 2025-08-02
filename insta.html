@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post Analyzer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f0f0;
+      color: #333;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    .avatar-section {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .avatar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .avatar img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin-bottom: 10px;
+      transition: transform 0.3s ease-in-out;
+    }
+    .speech-bubble {
+      background: #dfe6e9;
+      padding: 15px 20px;
+      border-radius: 15px;
+      position: relative;
+      font-size: 16px;
+      animation: typewriter 2s steps(40, end);
+      white-space: pre-line;
+      max-width: 100%;
+    }
+    .speech-bubble::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 20px;
+      width: 0;
+      height: 0;
+      border: 15px solid transparent;
+      border-top-color: #dfe6e9;
+      border-bottom: 0;
+      margin-left: -10px;
+      margin-bottom: -15px;
+    }
+    @keyframes typewriter {
+      from { width: 0 }
+      to { width: 100% }
+    }
+    textarea, input {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      margin-top: 15px;
+      background: #0984e3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    canvas {
+      margin-top: 30px;
+    }
+    img#previewImg {
+      max-width: 100%;
+      border-radius: 12px;
+      margin-top: 20px;
+      display: none;
+    }
+    .dance {
+      animation: dance 1s infinite alternate;
+    }
+    #cringeMeter {
+      margin-top: 20px;
+      background: #ffeaa7;
+      padding: 15px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+    }
+    @keyframes dance {
+      from { transform: rotate(-5deg); }
+      to { transform: rotate(5deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Post Analyzer</h1>
+    <div class="avatar-section">
+      <div class="avatar">
+        <img id="messiFace" src="https://cdn-icons-png.flaticon.com/512/947/947637.png" alt="Messi">
+        <div class="speech-bubble" id="messibubble">Hey champ, upload your Insta post!</div>
+      </div>
+      <div class="avatar">
+        <img id="coachFace" src="https://cdn-icons-png.flaticon.com/512/1995/1995574.png" alt="Coach">
+        <div class="speech-bubble" id="coachbubble">I'm here for the roast!</div>
+      </div>
+    </div>
+
+    <textarea id="caption" placeholder="Type your Insta caption..."></textarea>
+    <button onclick="analyzePost()">Analyze Caption</button>
+
+    <div id="cringeMeter"></div>
+
+    <hr>
+
+    <input type="file" accept="image/*" onchange="previewImage(event)">
+    <img id="previewImg">
+    <button onclick="evaluateImagePost()">Evaluate Image</button>
+
+    <hr>
+
+    <input type="number" id="instaTime" placeholder="Time wasted on Instagram (in hours)">
+    <button onclick="generateSchedule()">Generate Scroll Plan</button>
+
+    <canvas id="chart"></canvas>
+    <button onclick="rerollComment()">🔥 Roast Me Again</button>
+  </div>
+
+  <script>
+    const messiBubble = document.getElementById("messibubble");
+    const coachBubble = document.getElementById("coachbubble");
+    const messiFace = document.getElementById("messiFace");
+    const cringeMeter = document.getElementById("cringeMeter");
+
+    function speakEN(text, id = 'messi') {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'en-US';
+      utter.pitch = 1;
+      utter.rate = 1;
+      speechSynthesis.speak(utter);
+
+      if (id === 'messi') {
+        messiBubble.innerText = text;
+      } else {
+        coachBubble.innerText = text;
+      }
+    }
+
+    function updateFace(mood) {
+      const faceMap = {
+        neutral: "https://cdn-icons-png.flaticon.com/512/947/947637.png",
+        happy: "https://cdn-icons-png.flaticon.com/512/725/725107.png",
+        shocked: "https://cdn-icons-png.flaticon.com/512/725/725089.png",
+        crying: "https://cdn-icons-png.flaticon.com/512/257/257609.png"
+      };
+      messiFace.src = faceMap[mood] || faceMap.neutral;
+      messiFace.classList.remove("dance");
+      if (mood === "happy") {
+        messiFace.classList.add("dance");
+      }
+    }
+
+    function rerollComment() {
+      const comment = [
+        "🔥🔥🔥 Bro slayed it!",
+        "Caption is longer than your last relationship 😬",
+        "Still better than your last haircut ✂️",
+        "Emoji overload detected 🚨",
+        "Cringe level: unlocks bonus embarrassment 👻",
+        "Eda mass brooo🔥🔥... oru smile koodi vech thalapoli aakkan pattiirunnu 😭",
+        "Ningalkkoru camera koduthal athinte jeevitham kazhiyum 😩📸",
+        "Ente bro alla... ithoru brand aan 🔥👑",
+        "Style okke kaanaan nalla angle venam... pakshe nee etra angleilum heavy aanu da 😎",
+        "Photo super aanu bro... but shirt kittiyath evide ninnaanu? 😂",
+        "Swag level: Malayalam movie villain intro 😤🔥",
+        "Eda ithu kandappol thonni njanum oru post ittu escape cheyyanam 😩",
+        "Kure style und... pakshe adutha photo il oru face koodi edukkaaam bro 😅",
+        "Ninte pic kaanaan njan 4G il ninnu WiFi-il switch cheythu da 😂📱",
+        "Oru keeriyatha look... ithrayum bhangiyayi njan last kandathu fish curry il aanu bro 😂",
+        "Bro ithu okke post aavumbol low confidence aayirikkunna njangale mention cheyyanam 😭",
+        "Nee alle da fashioninte final boss 💀🔥",
+        "Ithrayum clean look, enikku thonni nee soap ad kittiyallo 😂🧼",
+        "Moneeee, pose kandappol thonni next movie casting aanu ithu 🤯🎥",
+        "Ee photo kandappol njan ente camera sell cheyyan thudangiyu da 😭📷",
+        "Ivide mass um class um kettiyathu oru photo aanu 🔥👊",
+        "Bro, nee post eduthathinu sesham reels algorithm crash ayi 😅📉",
+        "Sherikkum oru prank aanennu vicharichu... pakshe ithu real style aan alle? 😂",
+        "Nee oru mass hero aayirunnillenkil, gym owner aayi irikkum da 💪🔥",
+        "Comment cheyyan oru word pole kittunnilla... full damage post aanu 🔥😤"
+      ];
+      const randomComment = comment[Math.floor(Math.random() * comment.length)];
+      speakEN(`New roast: ${randomComment}`, 'coach');
+      const coachVoice = new Audio('https://www.myinstants.com/media/sounds/tf2-ya-failed.mp3');
+      coachVoice.play();
+    }
+
+    function analyzePost() {
+      const caption = document.getElementById("caption").value.trim();
+      if (!caption) return alert("Even Messi expects a caption. Type something!");
+      const likes = Math.floor(Math.random() * 9999 + 100);
+      const cringeScore = Math.floor(Math.random() * 11);
+      const cringeLabel = cringeScore <= 2 ? "Legendary" : cringeScore <= 5 ? "Normal cringe" : cringeScore <= 8 ? "High cringe" : "Cringe apocalypse";
+      speakEN(`Wow! This caption might get ${likes} likes.`, 'messi');
+      setTimeout(() => rerollComment(), 2000);
+      setTimeout(() => speakEN(`Cringe level: ${cringeScore}/10 – ${cringeLabel}`, 'messi'), 3500);
+      cringeMeter.innerText = `😬 Cringe Level: ${cringeScore}/10 – ${cringeLabel}`;
+      cringeMeter.style.display = 'block';
+      updateFace("happy");
+    }
+
+    function previewImage(event) {
+      const img = document.getElementById('previewImg');
+      img.src = URL.createObjectURL(event.target.files[0]);
+      img.style.display = 'block';
+    }
+
+    function evaluateImagePost() {
+      const score = (Math.random() * 5 + 5).toFixed(1);
+      const advice = [
+        "Giving breakup comeback vibes 💅",
+        "Post at 7PM – drama peak hour 📈",
+        "Too many filters, not enough soul 🧃",
+        "You good, bro? 👀",
+        "Followers pretending they didn’t see this"
+      ];
+      const chosen = advice[Math.floor(Math.random() * advice.length)];
+      speakEN(`Attractiveness score: ${score} out of 10`, 'messi');
+      setTimeout(() => speakEN(chosen, 'coach'), 3000);
+      updateFace("shocked");
+    }
+
+    function generateSchedule() {
+      const time = parseFloat(document.getElementById("instaTime").value);
+      if (isNaN(time) || time <= 0) return alert("Type in at least 1 hour... 🙄");
+      const reels = Math.floor(time * 10);
+      const stories = Math.floor(time * 20);
+      const posts = Math.floor(time * 15);
+
+      const roast = [
+        `Congrats! You wasted ${time} hours 🎉`,
+        `You're a pro scroller now! 🎮`,
+        `Two more hours and you earn a PhD 😂`,
+        `Even Instagram wants to block you 🤖`,
+        `I saw it too... but at least I'm fictional 😭`
+      ];
+      const roastLine = roast[Math.floor(Math.random() * roast.length)];
+      speakEN(`Scroll breakdown: ${reels} reels, ${stories} stories, ${posts} posts`, 'messi');
+      setTimeout(() => speakEN(roastLine, 'coach'), 3000);
+      updateFace("crying");
+      drawChart(reels, stories, posts);
+    }
+
+    function drawChart(r, s, p) {
+      const ctx = document.getElementById('chart').getContext('2d');
+      if (window.pieChart) window.pieChart.destroy();
+      window.pieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Reels', 'Stories', 'Posts'],
+          datasets: [{
+            data: [r, s, p],
+            backgroundColor: ['#ff7675', '#74b9ff', '#ffeaa7']
+          }]
+        },
+        options: { responsive: true }
+      });
+    }
+  </script>
+</body>
+</html>
